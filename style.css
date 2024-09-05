@@ -1,0 +1,49 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+header {
+    background-color: #4CAF50;
+    color: white;
+    text-align: center;
+    padding: 1rem;
+}
+
+main {
+    display: flex;
+    flex: 1;
+}
+
+#map-container {
+    flex: 2;
+    overflow: hidden;
+}
+
+#static-map {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#data-display {
+    flex: 1;
+    padding: 1rem;
+    background-color: #f0f0f0;
+    overflow-y: auto;
+}
+
+#comune-select {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+#weather-data {
+    background-color: white;
+    padding: 1rem;
+    border-radius: 5px;
+}

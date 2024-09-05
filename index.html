@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App per la Raccolta dei Funghi - Modena e Reggio Emilia</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Mappa per la Raccolta dei Funghi</h1>
+    </header>
+    <main>
+        <div id="map-container">
+            <img src="https://www.rallymodenareggio.it/wp-content/uploads/emiliaromagna.jpg" alt="Mappa di Modena e Reggio Emilia" id="static-map">
+        </div>
+        <div id="data-display">
+            <h2>Dati in Tempo Reale</h2>
+            <select id="comune-select">
+                <option value="">Seleziona un comune</option>
+            </select>
+            <div id="weather-data">
+                <!-- I dati meteo verranno inseriti qui -->
+            </div>
+        </div>
+    </main>
+    <script>
+    console.log("JavaScript code starting");
+
+    // Dati dei comuni con altitudini realistiche e tipo di terreno
+    const comuni = [
+        { name: 'Modena', altitude: 34, terrain: 'pianura', mushroomPotential: 'basso' },
+        { name: 'Reggio Emilia', altitude: 58, terrain: 'pianura', mushroomPotential: 'basso' },
+        { name: 'Carpi', altitude: 26, terrain: 'pianura', mushroomPotential: 'basso' },
+        { name: 'Sassuolo', altitude: 121, terrain: 'collina', mushroomPotential: 'basso' },
+        { name: 'Formigine', altitude: 82, terrain: 'pianura', mushroomPotential: 'basso' },
+        { name: 'Casalgrande', altitude: 95, terrain: 'collina', mushroomPotential: 'basso' },
+        { name: 'Maranello', altitude: 150, terrain: 'collina', mushroomPotential: 'basso' },
+        { name: 'Villa Minozzo', altitude: 691, terrain: 'montagna', mushroomPotential: 'alto' },
+        { name: 'Pievepelago', altitude: 781, terrain: 'montagna', mushroomPotential: 'alto' },
+        { name: 'Frassinoro', altitude: 1131, terrain: 'montagna', mushroomPotential: 'alto' },
+        { name: 'Fanano', altitude: 640, terrain: 'montagna', mushroomPotential: 'alto' },
+        { name: 'Sestola', altitude: 1020, terrain: 'montagna', mushroomPotential: 'alto' },
+        { name: 'Montefiorino', altitude: 797, terrain: 'montagna', mushroomPotential: 'alto' },
+        { name: 'Carpineti', altitude: 568, terrain: 'montagna', mushroomPotential: 'medio' },
+        { name: 'Castelnovo ne\' Monti', altitude: 700, terrain: 'montagna', mushroomPotential: 'alto' },
+        { name: 'Toano', altitude: 842, terrain: 'montagna', mushroomPotential: 'alto' },
+        { name: 'Ligonchio', altitude: 927, terrain: 'montagna', mushroomPotential: 'alto' },
+        { name: 'Ramiseto', altitude: 815, terrain: 'montagna', mushroomPotential: 'alto' },
+    ];
+
+    // Popola il menu a discesa dei comuni
+    function populateComuneSelect() {
+        console.log("Populating comune select");
+        const select = document.getElementById('comune-select');
+        comuni.forEach(comune => {
+            const option = document.createElement('option');
+            option.value = comune.name;
+            option.textContent = comune.name;
+            select.appendChild(option);
+        });
+        console.log("Comune select populated");
+    }
+
+    // Funzione per generare dati meteo realistici basati sull'altitudine e la stagione
+    function getRealisticWeatherData(altitude, terrain, mushroomPotential) {
+        console.log("Generating weather data for altitude:", altitude, "terrain:", terrain, "and mushroom potential:", mushroomPotential);
+        const currentDate = new Date();
+        const month = currentDate.getMonth() + 1; // JavaScript months are 0-indexed
+        
+        // Temperatura base che varia con la stagione
+        let baseTemperature;
+        if (month >= 3 && month <= 5) baseTemperature = 15; // Primavera
+        else if (month >= 6 && month <= 8) baseTemperature = 25; // Estate
+        else if (month >= 9 && month <= 11) baseTemperature = 15; // Autunno
+        else baseTemperature = 5; // Inverno
+
+        const temperature = Math.round((baseTemperature - (altitude / 100) * 0.6 + (Math.random() * 4 - 2)) * 10) / 10;
+        const humidity = Math.round(60 + (Math.random() * 20));
+        const rainfall = Math.round(Math.random() * 20) / 10;
+        const mushroomLikelihood = calculateMushroomLikelihood(altitude, terrain, humidity, rainfall, month, mushroomPotential);
+        
+        return {
+            temperature,
+            humidity,
+            rainfall,
+            altitude,
+            mushroomLikelihood
+        };
+    }
+
+    // Calcola la probabilità di trovare funghi basata su altitudine, terreno, umidità, pioggia, stagione e potenziale funghi
+    function calculateMushroomLikelihood(altitude, terrain, humidity, rainfall, month, mushroomPotential) {
+        let likelihood = 0;
+
+        // Fattore potenziale funghi del comune
+        if (mushroomPotential === 'alto') likelihood += 40;
+        else if (mushroomPotential === 'medio') likelihood += 20;
+        else likelihood += 5;
+
+        // Fattore altitudine
+        if (altitude > 500) likelihood += 10;
+        if (altitude > 800) likelihood += 5;
+
+        // Fattore umidità
+        if (humidity > 70) likelihood += 10;
+        else if (humidity > 60) likelihood += 5;
+
+        // Fattore pioggia
+        if (rainfall > 1) likelihood += 10;
+        else if (rainfall > 0.5) likelihood += 5;
+
+        // Fattore stagionale
+        if (month >= 9 && month <= 11) likelihood += 15; // Autunno è la stagione migliore
+        else if (month >= 3 && month <= 5) likelihood += 10; // Primavera è buona ma non ottima
+
+        return Math.min(Math.max(likelihood, 0), 100);
+    }
+
+    // Aggiorna i dati meteo visualizzati
+    function updateWeatherData(comune) {
+        console.log("Updating weather data for comune:", comune);
+        const selectedComune = comuni.find(c => c.name === comune);
+        if (!selectedComune) {
+            console.log("Comune not found:", comune);
+            return;
+        }
+        const weatherData = getRealisticWeatherData(selectedComune.altitude, selectedComune.terrain, selectedComune.mushroomPotential);
+        const weatherDisplay = document.getElementById('weather-data');
+        weatherDisplay.innerHTML = `
+            <h3>${comune}</h3>
+            <p>Altitudine: ${weatherData.altitude} m</p>
+            <p>Tipo di terreno: ${selectedComune.terrain}</p>
+            <p>Potenziale funghi: ${selectedComune.mushroomPotential}</p>
+            <p>Temperatura: ${weatherData.temperature}°C</p>
+            <p>Umidità: ${weatherData.humidity}%</p>
+            <p>Pioggia nelle ultime 24 ore: ${weatherData.rainfall} mm</p>
+            <p>Probabilità di trovare funghi: ${weatherData.mushroomLikelihood}%</p>
+        `;
+        console.log("Weather data updated");
+    }
+
+    // Event listener per il cambio di comune selezionato
+    document.getElementById('comune-select').addEventListener('change', (e) => {
+        console.log("Comune select changed:", e.target.value);
+        if (e.target.value) {
+            updateWeatherData(e.target.value);
+        }
+    });
+
+    // Inizializza l'app
+    function init() {
+        console.log("Initializing app");
+        populateComuneSelect();
+    }
+
+    // Carica l'app quando la pagina è pronta
+    window.onload = init;
+
+    console.log("JavaScript code fully loaded");
+    </script>
+</body>
+</html>
